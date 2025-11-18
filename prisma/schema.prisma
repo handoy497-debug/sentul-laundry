@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  qrisImage     String?  @map("qris_image")
+  bankAccount   String?  @map("bank_account")
+  logo          String?  // Company logo
+  phone         String?  // Contact phone
+  contactEmail  String?  @map("contact_email") // Public contact email
+  address       String?  // Business address
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String
+  address   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  orders Order[]
+}
+
+model Service {
+  id               String   @id @default(cuid())
+  serviceName      String   @map("service_name")
+  description      String?
+  basePricePerKg   Float    @map("base_price_per_kg")
+  estimatedTime    String?  @map("estimated_time")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  prices Price[]
+  orders Order[]
+}
+
+model Price {
+  id            String   @id @default(cuid())
+  serviceId     String   @map("service_id")
+  effectiveDate DateTime @map("effective_date")
+  pricePerKg    Float    @map("price_per_kg")
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id            String    @id @default(cuid())
+  customerId    String    @map("customer_id")
+  serviceId     String    @map("service_id")
+  orderDate     DateTime  @default(now()) @map("order_date")
+  pickupDate    DateTime? @map("pickup_date")
+  deliveryDate  DateTime? @map("delivery_date")
+  weight        Float?
+  totalCost     Float?    @map("total_cost")
+  status        String    @default("Pending")
+  invoiceNumber String    @unique @map("invoice_number")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  service  Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  payments Payment[]
+}
+
+model Payment {
+  id            String    @id @default(cuid())
+  orderId       String    @map("order_id")
+  paymentMethod String    @map("payment_method")
+  paymentProof  String?   @map("payment_proof")
+  amount        Float
+  paymentDate   DateTime? @map("payment_date")
+  status        String    @default("Unpaid")
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Discount {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  image       String?
+  bannerImage String?  @map("banner_image")
+  discountPercent Float @map("discount_percent")
+  promoCode   String?  @map("promo_code")
+  startDate   DateTime @map("start_date")
+  endDate     DateTime @map("end_date")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+}
