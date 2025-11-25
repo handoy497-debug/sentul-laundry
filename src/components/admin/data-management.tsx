@@ -29,15 +29,13 @@ import {
   Database,
   Sun,
   Moon,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
 } from "lucide-react";
 import ServicesManagement from "@/components/admin/services-management";
 import OrdersManagement from "@/components/admin/orders-management";
 import SettingsManagement from "@/components/admin/settings-management";
 import CustomersManagement from "@/components/admin/customers-management";
 import PaymentsManagement from "@/components/admin/payments-management";
+import DataManagement from "@/components/admin/data-management";
 
 interface DashboardStats {
   totalOrdersToday: number;
@@ -56,47 +54,6 @@ interface RecentOrder {
   orderDate: string;
 }
 
-type FontSize = "small" | "medium" | "large" | "extra-large";
-
-const fontSizes = {
-  small: {
-    "--text-xs": "0.75rem",
-    "--text-sm": "0.875rem",
-    "--text-base": "1rem",
-    "--text-lg": "1.125rem",
-    "--text-xl": "1.25rem",
-    "--text-2xl": "1.5rem",
-    "--text-3xl": "1.875rem",
-  },
-  medium: {
-    "--text-xs": "0.875rem",
-    "--text-sm": "1rem",
-    "--text-base": "1.125rem",
-    "--text-lg": "1.25rem",
-    "--text-xl": "1.5rem",
-    "--text-2xl": "1.875rem",
-    "--text-3xl": "2.25rem",
-  },
-  large: {
-    "--text-xs": "1rem",
-    "--text-sm": "1.125rem",
-    "--text-base": "1.25rem",
-    "--text-lg": "1.5rem",
-    "--text-xl": "1.875rem",
-    "--text-2xl": "2.25rem",
-    "--text-3xl": "3rem",
-  },
-  "extra-large": {
-    "--text-xs": "1.125rem",
-    "--text-sm": "1.25rem",
-    "--text-base": "1.5rem",
-    "--text-lg": "1.875rem",
-    "--text-xl": "2.25rem",
-    "--text-2xl": "3rem",
-    "--text-3xl": "3.75rem",
-  },
-};
-
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalOrdersToday: 0,
@@ -109,10 +66,9 @@ export default function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [darkMode, setDarkMode] = useState(false);
-  const [fontSize, setFontSize] = useState<FontSize>("medium");
 
   useEffect(() => {
-    // Check for saved theme preference
+    // Check for saved theme preference or default to light mode
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)"
@@ -123,24 +79,8 @@ export default function AdminDashboard() {
       document.documentElement.classList.add("dark");
     }
 
-    // Check for saved font size preference
-    const savedFontSize = localStorage.getItem("fontSize") as FontSize;
-    if (savedFontSize && fontSizes[savedFontSize]) {
-      setFontSize(savedFontSize);
-    }
-
     fetchDashboardData();
   }, []);
-
-  useEffect(() => {
-    // Apply font size CSS variables
-    const root = document.documentElement;
-    const sizes = fontSizes[fontSize];
-    Object.entries(sizes).forEach(([key, value]) => {
-      root.style.setProperty(key, value);
-    });
-    localStorage.setItem("fontSize", fontSize);
-  }, [fontSize]);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -151,26 +91,6 @@ export default function AdminDashboard() {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
-  };
-
-  const increaseFontSize = () => {
-    const sizes: FontSize[] = ["small", "medium", "large", "extra-large"];
-    const currentIndex = sizes.indexOf(fontSize);
-    if (currentIndex < sizes.length - 1) {
-      setFontSize(sizes[currentIndex + 1]);
-    }
-  };
-
-  const decreaseFontSize = () => {
-    const sizes: FontSize[] = ["small", "medium", "large", "extra-large"];
-    const currentIndex = sizes.indexOf(fontSize);
-    if (currentIndex > 0) {
-      setFontSize(sizes[currentIndex - 1]);
-    }
-  };
-
-  const resetFontSize = () => {
-    setFontSize("medium");
   };
 
   const fetchDashboardData = async () => {
@@ -204,8 +124,6 @@ export default function AdminDashboard() {
   const handleNavigation = (tabId: string) => {
     if (tabId === "reports") {
       window.location.href = "/admin/reports";
-    } else if (tabId === "data-management") {
-      window.location.href = "/admin/data-management";
     } else {
       setActiveTab(tabId);
       setSidebarOpen(false);
@@ -245,7 +163,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors duration-300">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-teal-600 dark:border-teal-400 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300 font-medium">
+          <p className="mt-4 text-gray-600 dark:text-gray-300 text-lg font-medium">
             Loading dashboard...
           </p>
         </div>
@@ -330,39 +248,6 @@ export default function AdminDashboard() {
                 Dashboard Admin
               </h2>
               <div className="flex items-center space-x-2">
-                {/* Font Size Controls */}
-                <div className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                    onClick={decreaseFontSize}
-                    disabled={fontSize === "small"}
-                    title="Kecilkan huruf"
-                  >
-                    <ZoomOut className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                    onClick={resetFontSize}
-                    title="Reset ukuran huruf"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                    onClick={increaseFontSize}
-                    disabled={fontSize === "extra-large"}
-                    title="Perbesar huruf"
-                  >
-                    <ZoomIn className="h-4 w-4" />
-                  </Button>
-                </div>
-
                 <Button
                   variant="ghost"
                   size="sm"
@@ -508,7 +393,7 @@ export default function AdminDashboard() {
               </Card>
             </TabsContent>
 
-            {/* Other tabs will be implemented later */}
+            {/* Other Tabs */}
             <TabsContent value="customers">
               <CustomersManagement />
             </TabsContent>
@@ -523,6 +408,10 @@ export default function AdminDashboard() {
 
             <TabsContent value="payments">
               <PaymentsManagement />
+            </TabsContent>
+
+            <TabsContent value="data-management">
+              <DataManagement />
             </TabsContent>
 
             <TabsContent value="settings">

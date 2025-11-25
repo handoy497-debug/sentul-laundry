@@ -18,13 +18,10 @@ import {
   CreditCard,
   Upload,
   Save,
-  Tag,
   Image,
   Phone,
   Mail,
   MapPin,
-  Lock,
-  User,
 } from "lucide-react";
 import DiscountManagement from "./discount-management";
 
@@ -50,10 +47,6 @@ export default function SettingsManagement() {
     phone: "",
     contactEmail: "",
     address: "",
-    email: "",
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
   });
 
   useEffect(() => {
@@ -72,10 +65,6 @@ export default function SettingsManagement() {
         phone: data.phone || "",
         contactEmail: data.contactEmail || "",
         address: data.address || "",
-        email: data.email || "",
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
       });
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -84,6 +73,7 @@ export default function SettingsManagement() {
     }
   };
 
+  // Fungsi handleSubmit sekarang hanya menangani pengaturan umum, bukan password/email
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -101,13 +91,6 @@ export default function SettingsManagement() {
         const updatedSettings = await response.json();
         setSettings(updatedSettings);
         alert("Pengaturan berhasil disimpan!");
-        // Reset password fields after successful save
-        setFormData((prev) => ({
-          ...prev,
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        }));
       } else {
         alert("Gagal menyimpan pengaturan");
       }
@@ -119,103 +102,9 @@ export default function SettingsManagement() {
     }
   };
 
-  const handleEmailUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.email) {
-      alert("Email tidak boleh kosong");
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      const response = await fetch("/api/admin/update-email", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: formData.email }),
-      });
-
-      if (response.ok) {
-        const updatedSettings = await response.json();
-        setSettings(updatedSettings);
-        alert("Email berhasil diperbarui!");
-      } else {
-        const error = await response.json();
-        alert(`Gagal memperbarui email: ${error.message}`);
-      }
-    } catch (error) {
-      console.error("Error updating email:", error);
-      alert("Gagal memperbarui email");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handlePasswordUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (
-      !formData.currentPassword ||
-      !formData.newPassword ||
-      !formData.confirmPassword
-    ) {
-      alert("Semua field password harus diisi");
-      return;
-    }
-
-    if (formData.newPassword !== formData.confirmPassword) {
-      alert("Password baru dan konfirmasi password tidak cocok");
-      return;
-    }
-
-    if (formData.newPassword.length < 6) {
-      alert("Password baru harus memiliki minimal 6 karakter");
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      const response = await fetch("/api/admin/update-password", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          currentPassword: formData.currentPassword,
-          newPassword: formData.newPassword,
-        }),
-      });
-
-      if (response.ok) {
-        alert("Password berhasil diperbarui!");
-        // Reset password fields after successful update
-        setFormData((prev) => ({
-          ...prev,
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        }));
-      } else {
-        const error = await response.json();
-        alert(`Gagal memperbarui password: ${error.message}`);
-      }
-    } catch (error) {
-      console.error("Error updating password:", error);
-      alert("Gagal memperbarui password");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const handleQrisUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // For now, we'll use a placeholder URL
-      // In a real app, you'd upload to a storage service
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData((prev) => ({
@@ -260,11 +149,11 @@ export default function SettingsManagement() {
 
   return (
     <Tabs defaultValue="payment" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-5">
+      {/* Grid TabsList diubah dari grid-cols-5 menjadi grid-cols-4 */}
+      <TabsList className="grid w-full grid-cols-4">
         <TabsTrigger value="payment">Pembayaran</TabsTrigger>
         <TabsTrigger value="logo">Logo</TabsTrigger>
         <TabsTrigger value="contact">Kontak</TabsTrigger>
-        <TabsTrigger value="account">Akun</TabsTrigger>
         <TabsTrigger value="discounts">Discount</TabsTrigger>
       </TabsList>
 
@@ -398,8 +287,7 @@ export default function SettingsManagement() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              {/* eslint-disable-next-line jsx-a11y/alt-text */}
-              <Image className="h-5 w-5 text-teal-600" aria-hidden="true" />
+              <Image className="h-5 w-5 text-teal-600" />
               <span>Logo Perusahaan</span>
             </CardTitle>
             <CardDescription>
@@ -416,13 +304,8 @@ export default function SettingsManagement() {
                   <div className="border rounded-lg p-6 bg-gradient-to-br from-teal-50 to-cyan-50">
                     <div className="text-center">
                       <div className="relative inline-block group mb-4">
-                        {/* Outer ring with gradient */}
                         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-teal-400 via-cyan-400 to-blue-400 opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
-
-                        {/* Middle ring */}
                         <div className="absolute inset-2 rounded-full bg-white/80 backdrop-blur-sm"></div>
-
-                        {/* Inner container with logo */}
                         <div className="relative w-32 h-32 rounded-full bg-white p-2 flex items-center justify-center shadow-xl border-4 border-white/50">
                           <img
                             src={formData.logo}
@@ -606,169 +489,7 @@ export default function SettingsManagement() {
         </div>
       </TabsContent>
 
-      <TabsContent value="account" className="space-y-6">
-        <div>
-          <h3 className="text-lg font-semibold">Pengaturan Akun</h3>
-          <p className="text-sm text-gray-600">
-            Kelola email dan password akun admin Anda
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Email Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Mail className="h-5 w-5 text-teal-600" />
-                <span>Update Email</span>
-              </CardTitle>
-              <CardDescription>
-                Perbarui email untuk login ke sistem
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <form onSubmit={handleEmailUpdate}>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Baru</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Contoh: admin@sentul-laundry.com"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        email: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-                  <p className="text-xs text-gray-500">
-                    Email ini akan digunakan untuk login ke sistem
-                  </p>
-                </div>
-                <div className="mt-4">
-                  <Button
-                    type="submit"
-                    disabled={saving}
-                    className="bg-teal-600 hover:bg-teal-700 w-full"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    {saving ? "Menyimpan..." : "Update Email"}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Password Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Lock className="h-5 w-5 text-teal-600" />
-                <span>Update Password</span>
-              </CardTitle>
-              <CardDescription>
-                Perbarui password untuk keamanan akun
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <form onSubmit={handlePasswordUpdate}>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Password Saat Ini</Label>
-                    <Input
-                      id="currentPassword"
-                      type="password"
-                      placeholder="Masukkan password saat ini"
-                      value={formData.currentPassword}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          currentPassword: e.target.value,
-                        }))
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword">Password Baru</Label>
-                    <Input
-                      id="newPassword"
-                      type="password"
-                      placeholder="Masukkan password baru (min. 6 karakter)"
-                      value={formData.newPassword}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          newPassword: e.target.value,
-                        }))
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">
-                      Konfirmasi Password Baru
-                    </Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Masukkan kembali password baru"
-                      value={formData.confirmPassword}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          confirmPassword: e.target.value,
-                        }))
-                      }
-                      required
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    Gunakan password yang kuat dengan kombinasi huruf, angka,
-                    dan simbol
-                  </p>
-                </div>
-                <div className="mt-4">
-                  <Button
-                    type="submit"
-                    disabled={saving}
-                    className="bg-teal-600 hover:bg-teal-700 w-full"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    {saving ? "Menyimpan..." : "Update Password"}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Account Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <User className="h-5 w-5 text-teal-600" />
-              <span>Informasi Akun</span>
-            </CardTitle>
-            <CardDescription>Informasi akun admin saat ini</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Email Admin:</span>
-                <span className="font-medium">{settings?.email}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">ID Akun:</span>
-                <span className="font-medium">{settings?.id}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
+      {/* TabsContent untuk "discounts" tetap ada */}
       <TabsContent value="discounts">
         <DiscountManagement />
       </TabsContent>
